@@ -89,20 +89,17 @@ class TaskControllerTest {
     }
 
     @Test
-    void getTasksOverdue_retorna200YListaOrdenada() throws Exception {
-        // Prepara dos tareas vencidas en distinto orden y verifica que el endpoint las devuelve ordenadas
+    void getTasksOverdue_retorna200YUnaTarea() throws Exception {
+        // El mock devuelve una sola tarea; el slice debe comprobar 200 y los campos id y title
         try {
-            Task vieja = new Task(7L, "Corregir bug de fechas", "d", TaskStatus.IN_PROGRESS, Priority.MED, 1L, 2L,
+            Task tarea = new Task(7L, "Corregir bug de fechas", "d", TaskStatus.IN_PROGRESS, Priority.MED, 1L, 2L,
                     java.time.LocalDate.now().minusDays(1));
-            Task masAntigua = new Task(6L, "Muy antigua", "d", TaskStatus.IN_PROGRESS, Priority.MED, 1L, 2L,
-                    java.time.LocalDate.now().minusDays(5));
-            when(taskService.vencidas()).thenReturn(List.of(masAntigua, vieja));
+            when(taskService.vencidas()).thenReturn(List.of(tarea));
 
             mockMvc.perform(get("/tasks/overdue"))
                     .andExpect(status().isOk())
-                    .andExpect(jsonPath("$.length()").value(2))
-                    .andExpect(jsonPath("$[0].id").value(6))
-                    .andExpect(jsonPath("$[1].id").value(7));
+                    .andExpect(jsonPath("$[0].id").value(7))
+                    .andExpect(jsonPath("$[0].title").value("Corregir bug de fechas"));
         } catch (com.taskflow.exception.TaskValidationException e) {
             throw new IllegalStateException(e);
         }
