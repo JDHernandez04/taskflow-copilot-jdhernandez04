@@ -167,6 +167,50 @@ class TaskServiceTest {
     }
 
     @Nested
+    @DisplayName("SinResponsable")
+    class SinResponsable {
+
+        @Test
+        void devuelveSoloTareasSinResponsableEnOrdenPorFecha() {
+            // El repositorio devuelve, en ESTE orden: 10d sin assignee, con assignee, sin fecha sin assignee, 2d sin assignee
+            Task a10; // sin responsable, dueDate = now + 10
+            Task conResp; // con responsable
+            Task sinFecha; // sin responsable, sin dueDate
+            Task d2; // sin responsable, dueDate = now + 2
+            try {
+                a10 = new Task(101L, "A10", "d", TaskStatus.TODO, Priority.MED, PROYECTO, null,
+                        java.time.LocalDate.now().plusDays(10));
+                conResp = new Task(102L, "ConResp", "d", TaskStatus.TODO, Priority.MED, PROYECTO, 5L,
+                        java.time.LocalDate.now().plusDays(5));
+                sinFecha = new Task(103L, "SinFecha", "d", TaskStatus.TODO, Priority.MED, PROYECTO, null,
+                        null);
+                d2 = new Task(104L, "D02", "d", TaskStatus.TODO, Priority.MED, PROYECTO, null,
+                        java.time.LocalDate.now().plusDays(2));
+            } catch (TaskValidationException e) {
+                throw new IllegalStateException(e);
+            }
+
+            when(repository.findAll()).thenReturn(java.util.List.of(a10, conResp, sinFecha, d2));
+
+            java.util.List<Task> resultado = service.sinResponsable();
+
+            java.util.List<Long> ids = resultado.stream().map(Task::getId).toList();
+            // Esperado: D2 (2d), A10 (10d), SinFecha (null)
+            org.junit.jupiter.api.Assertions.assertEquals(java.util.List.of(104L, 101L, 103L), ids);
+        }
+
+        @Test
+        void devuelveListaVaciaCuandoNoHaySinResponsable() {
+            Task conResp = tarea(201L, "Con responsable", 2L);
+            when(repository.findAll()).thenReturn(java.util.List.of(conResp));
+
+            java.util.List<Task> resultado = service.sinResponsable();
+
+            org.junit.jupiter.api.Assertions.assertTrue(resultado.isEmpty());
+        }
+    }
+
+    @Nested
     @DisplayName("vencidas")
     class Vencidas {
 
@@ -201,3 +245,4 @@ class TaskServiceTest {
         }
     }
 }
+
