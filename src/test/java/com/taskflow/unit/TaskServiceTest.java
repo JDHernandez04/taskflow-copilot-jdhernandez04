@@ -165,4 +165,105 @@ class TaskServiceTest {
             throw new IllegalStateException("dato de prueba inválido", e);
         }
     }
+
+    @Nested
+    @DisplayName("SinResponsable")
+    class SinResponsable {
+
+        @Test
+        void devuelveSoloTareasSinResponsableEnOrdenPorFecha() {
+            // El repositorio devuelve, en ESTE orden: 10d sin assignee, con assignee, sin fecha sin assignee, 2d sin assignee
+            Task a10; // sin responsable, dueDate = now + 10
+            Task conResp; // con responsable
+            Task sinFecha; // sin responsable, sin dueDate
+            Task d2; // sin responsable, dueDate = now + 2
+            try {
+                a10 = new Task(101L, "A10", "d", TaskStatus.TODO, Priority.MED, PROYECTO, null,
+                        java.time.LocalDate.now().plusDays(10));
+                conResp = new Task(102L, "ConResp", "d", TaskStatus.TODO, Priority.MED, PROYECTO, 5L,
+                        java.time.LocalDate.now().plusDays(5));
+                sinFecha = new Task(103L, "SinFecha", "d", TaskStatus.TODO, Priority.MED, PROYECTO, null,
+                        null);
+                d2 = new Task(104L, "D02", "d", TaskStatus.TODO, Priority.MED, PROYECTO, null,
+                        java.time.LocalDate.now().plusDays(2));
+            } catch (TaskValidationException e) {
+                throw new IllegalStateException(e);
+            }
+
+            when(repository.findAll()).thenReturn(java.util.List.of(a10, conResp, sinFecha, d2));
+
+            java.util.List<Task> resultado = service.sinResponsable();
+
+            java.util.List<Long> ids = resultado.stream().map(Task::getId).toList();
+            // Esperado: D2 (2d), A10 (10d), SinFecha (null)
+            org.junit.jupiter.api.Assertions.assertEquals(java.util.List.of(104L, 101L, 103L), ids);
+        }
+
+        @Test
+        void devuelveListaVaciaCuandoNoHaySinResponsable() {
+            Task conResp = tarea(201L, "Con responsable", 2L);
+            when(repository.findAll()).thenReturn(java.util.List.of(conResp));
+
+            java.util.List<Task> resultado = service.sinResponsable();
+
+            org.junit.jupiter.api.Assertions.assertTrue(resultado.isEmpty());
+        }
+    }
+
+    @Nested
+    @DisplayName("vencidas")
+    class Vencidas {
+
+        @Test
+        void vencidas_filtraSoloVencidasYOrdenaPorFecha() {
+            // Construye tareas reales: algunas vencidas, otras no; una DONE vencida debe excluirse.
+            Task vencida1; // más antigua
+            Task vencida2; // menos antigua
+            Task doneVencida; // vencida pero DONE -> no debe aparecer
+            Task futura; // no vencida
+            try {
+                vencida1 = new Task(11L, "Antigua", "d", TaskStatus.IN_PROGRESS, Priority.MED, PROYECTO, 1L,
+                        java.time.LocalDate.now().minusDays(3));
+                vencida2 = new Task(12L, "Menos antigua", "d", TaskStatus.TODO, Priority.MED, PROYECTO, 1L,
+                        java.time.LocalDate.now().minusDays(1));
+                doneVencida = new Task(13L, "Hecha", "d", TaskStatus.DONE, Priority.MED, PROYECTO, 1L,
+                        java.time.LocalDate.now().minusDays(2));
+                futura = new Task(14L, "Futura", "d", TaskStatus.TODO, Priority.MED, PROYECTO, 1L,
+                        java.time.LocalDate.now().plusDays(5));
+            } catch (TaskValidationException e) {
+                throw new IllegalStateException(e);
+            }
+
+            when(repository.findAll()).thenReturn(java.util.List.of(vencida2, futura, doneVencida, vencida1));
+
+            java.util.List<Task> resultado = service.vencidas();
+
+            // Debe contener solo las dos vencidas (vencida1 y vencida2), ordenadas por dueDate asc (vencida1 primero)
+            org.junit.jupiter.api.Assertions.assertEquals(2, resultado.size());
+            org.junit.jupiter.api.Assertions.assertEquals(vencida1, resultado.get(0));
+            org.junit.jupiter.api.Assertions.assertEquals(vencida2, resultado.get(1));
+        }
+
+        @Test
+        void vencidas_excluyeTareasSinDueDate() {
+            Task vencida; 
+            Task sinFecha; 
+            try {
+                vencida = new Task(21L, "Vencida", "d", TaskStatus.IN_PROGRESS, Priority.MED, PROYECTO, 1L,
+                        java.time.LocalDate.now().minusDays(1));
+                sinFecha = new Task(22L, "SinFecha", "d", TaskStatus.IN_PROGRESS, Priority.MED, PROYECTO, 1L,
+                        null);
+            } catch (TaskValidationException e) {
+                throw new IllegalStateException(e);
+            }
+
+            when(repository.findAll()).thenReturn(java.util.List.of(sinFecha, vencida));
+
+            java.util.List<Task> resultado = service.vencidas();
+
+            org.junit.jupiter.api.Assertions.assertEquals(1, resultado.size());
+            org.junit.jupiter.api.Assertions.assertEquals(vencida, resultado.get(0));
+        }
+    }
 }
+

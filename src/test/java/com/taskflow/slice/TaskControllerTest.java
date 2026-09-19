@@ -89,6 +89,41 @@ class TaskControllerTest {
     }
 
     @Test
+    void getTasksOverdue_retorna200YUnaTarea() throws Exception {
+        // El mock devuelve una sola tarea; el slice debe comprobar 200 y los campos id y title
+        try {
+            Task tarea = new Task(7L, "Corregir bug de fechas", "d", TaskStatus.IN_PROGRESS, Priority.MED, 1L, 2L,
+                    java.time.LocalDate.now().minusDays(1));
+            when(taskService.vencidas()).thenReturn(List.of(tarea));
+
+            mockMvc.perform(get("/tasks/overdue"))
+                    .andExpect(status().isOk())
+                    .andExpect(jsonPath("$[0].id").value(7))
+                    .andExpect(jsonPath("$[0].title").value("Corregir bug de fechas"));
+        } catch (com.taskflow.exception.TaskValidationException e) {
+            throw new IllegalStateException(e);
+        }
+    }
+
+    @Test
+    void getTasksUnassigned_retorna200YAssigneeNull() throws Exception {
+        try {
+            Task t4 = new Task(4L, "Escribir tests MockMvc", "d", TaskStatus.TODO, Priority.MED, 1L, null,
+                    java.time.LocalDate.now().plusDays(7));
+            Task t6 = new Task(6L, "Publicar en la tienda", "d", TaskStatus.TODO, Priority.MED, 1L, null,
+                    java.time.LocalDate.now().plusDays(10));
+            when(taskService.sinResponsable()).thenReturn(List.of(t4, t6));
+
+            mockMvc.perform(get("/tasks/unassigned"))
+                    .andExpect(status().isOk())
+                    .andExpect(jsonPath("$[0].id").value(4))
+                    .andExpect(jsonPath("$[0].assigneeId").value(org.hamcrest.Matchers.nullValue()));
+        } catch (com.taskflow.exception.TaskValidationException e) {
+            throw new IllegalStateException(e);
+        }
+    }
+
+    @Test
     void getTaskPorId_existente_retorna200ConElTitulo() throws Exception {
         when(taskService.buscarPorId(1L)).thenReturn(Optional.of(tarea(1L, "Diseñar esquema de BD", TaskStatus.TODO)));
 
