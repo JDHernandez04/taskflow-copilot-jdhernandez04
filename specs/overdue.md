@@ -26,7 +26,7 @@ atrasó sin revisar proyecto por proyecto.
 
 - Unit en `TaskServiceTest`: devuelve solo vencidas y en orden; una tarea `DONE` con fecha pasada NO
   aparece; una sin `dueDate` NO aparece.
-- Slice en `TaskControllerTest`: `GET /tasks/overdue` responde `200` y el JSON trae las tareas en orden.
+- Slice en `TaskControllerTest`: `GET /tasks/overdue` responde `200` y el JSON trae el id y el title de las tareas que devuelve el servicio (el orden se prueba en el unit).
 
 ## Resultado esperado con la semilla
 

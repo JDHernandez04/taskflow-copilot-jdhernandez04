@@ -243,6 +243,27 @@ class TaskServiceTest {
             org.junit.jupiter.api.Assertions.assertEquals(vencida1, resultado.get(0));
             org.junit.jupiter.api.Assertions.assertEquals(vencida2, resultado.get(1));
         }
+
+        @Test
+        void vencidas_excluyeTareasSinDueDate() {
+            Task vencida; 
+            Task sinFecha; 
+            try {
+                vencida = new Task(21L, "Vencida", "d", TaskStatus.IN_PROGRESS, Priority.MED, PROYECTO, 1L,
+                        java.time.LocalDate.now().minusDays(1));
+                sinFecha = new Task(22L, "SinFecha", "d", TaskStatus.IN_PROGRESS, Priority.MED, PROYECTO, 1L,
+                        null);
+            } catch (TaskValidationException e) {
+                throw new IllegalStateException(e);
+            }
+
+            when(repository.findAll()).thenReturn(java.util.List.of(sinFecha, vencida));
+
+            java.util.List<Task> resultado = service.vencidas();
+
+            org.junit.jupiter.api.Assertions.assertEquals(1, resultado.size());
+            org.junit.jupiter.api.Assertions.assertEquals(vencida, resultado.get(0));
+        }
     }
 }
 
