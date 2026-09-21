@@ -1,9 +1,12 @@
 package com.taskflow.service;
 
 import com.taskflow.dto.ProjectRequest;
+import com.taskflow.dto.ProjectSummaryResponse;
 import com.taskflow.exception.ProjectNotFoundException;
+import com.taskflow.mapper.ProjectMapper;
 import com.taskflow.model.Project;
 import com.taskflow.model.Task;
+import com.taskflow.model.TaskStatus;
 import com.taskflow.model.User;
 import com.taskflow.repository.ProjectRepository;
 import com.taskflow.repository.TaskRepository;
@@ -12,7 +15,9 @@ import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
+import java.util.EnumMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 /**
@@ -60,6 +65,20 @@ public class ProjectService {
      */
     public List<Task> tareasDe(Long projectId) {
         return taskRepository.findByProjectId(projectId);
+    }
+
+    /**
+     * Resumen de un proyecto: cuántas tareas tiene en cada estado y cuántas están vencidas.
+     * Reutiliza Task.estaVencida() (no reescribe la regla). byStatus siempre trae las tres claves.
+     */
+    public ProjectSummaryResponse resumen(Project proyecto) {
+        List<Task> tareas = taskRepository.findByProjectId(proyecto.getId());
+        Map<TaskStatus, Long> byStatus = new EnumMap<>(TaskStatus.class);
+        for (TaskStatus status : TaskStatus.values()) {
+            byStatus.put(status, tareas.stream().filter(t -> t.getStatus() == status).count());
+        }
+        long overdue = tareas.stream().filter(Task::estaVencida).count();
+        return ProjectMapper.aSummary(proyecto, tareas.size(), byStatus, overdue);
     }
 
     /**
