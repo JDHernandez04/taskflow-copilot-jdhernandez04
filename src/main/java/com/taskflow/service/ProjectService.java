@@ -1,5 +1,6 @@
 package com.taskflow.service;
 
+import com.taskflow.dto.ProjectProgressResponse;
 import com.taskflow.dto.ProjectRequest;
 import com.taskflow.dto.ProjectSummaryResponse;
 import com.taskflow.exception.ProjectNotFoundException;
@@ -79,6 +80,25 @@ public class ProjectService {
         }
         long overdue = tareas.stream().filter(Task::estaVencida).count();
         return ProjectMapper.aSummary(proyecto, tareas.size(), byStatus, overdue);
+    }
+
+    /**
+     * Progreso de cada proyecto: cuántas tareas tiene, cuántas están DONE y el porcentaje (redondeado
+     * a un decimal). El cálculo va en decimal antes de dividir para evitar la trampa long/long.
+     * Orden final por projectId ascendente.
+     */
+    public List<ProjectProgressResponse> progresoPorProyecto() {
+        return projectRepository.findAll().stream()
+                .map(p -> {
+                    List<Task> tareas = taskRepository.findByProjectId(p.getId());
+                    long total = tareas.size();
+                    long done = tareas.stream().filter(t -> t.getStatus() == TaskStatus.DONE).count();
+                    double percent = total == 0 ? 0.0
+                            : Math.round(done * 100.0 / total * 10.0) / 10.0;
+                    return ProjectMapper.aProgreso(p, total, done, percent);
+                })
+                .sorted((a, b) -> Long.compare(a.projectId(), b.projectId()))
+                .toList();
     }
 
     /**

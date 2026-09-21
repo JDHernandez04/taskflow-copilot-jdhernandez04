@@ -2,6 +2,7 @@ package com.taskflow.mapper;
 
 import java.util.Map;
 
+import com.taskflow.dto.ProjectProgressResponse;
 import com.taskflow.dto.ProjectResponse;
 import com.taskflow.dto.ProjectSummaryResponse;
 import com.taskflow.model.Project;
@@ -31,5 +32,12 @@ public final class ProjectMapper {
     public static ProjectSummaryResponse aSummary(Project p, long totalTasks,
             Map<TaskStatus, Long> byStatus, long overdue) {
         return new ProjectSummaryResponse(p.getId(), p.getName(), totalTasks, byStatus, overdue);
+    }
+
+    /** Conteos ya calculados por el service -> DTO de salida de GET /reports/progress. */
+    public static ProjectProgressResponse aProgreso(Project proyecto, long totalTasks, long doneTasks,
+            double percentDone) {
+        return new ProjectProgressResponse(proyecto.getId(), proyecto.getName(), totalTasks, doneTasks,
+                percentDone);
     }
 }
