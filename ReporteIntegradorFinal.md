@@ -233,7 +233,7 @@ Para terminar, corrí la suite una última vez. El resultado fue brutal: **79 te
 
 ## Conclusión y Aprendizajes
 
-Este bootcamp me voló la cabeza respecto a cómo usar IA de manera profesional. Aprendí que Copilot no es un piloto automático al que le dejas el teclado y te vas a tomar café. Es un copiloto súper potente, pero **tú eres el comandante**. 
+Esta capacitación me voló la cabeza respecto a cómo usar IA de manera profesional. Aprendí que Copilot no es un piloto automático al que le dejas el teclado y te vas a tomar café. Es un copiloto súper potente, pero **tú eres el comandante**. 
 
 Mis mayores aprendizajes fueron:
 - **El contexto lo es todo:** Una buena especificación y un archivo de instrucciones claras evitan horas de corregir código inútil.
