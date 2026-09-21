@@ -1,0 +1,35 @@
+ specs/overdue.md                                   | 42 ++++++++++++++++++++++
+ .../com/taskflow/controller/TaskController.java    | 12 +++++++
+ .../java/com/taskflow/service/TaskService.java     | 11 ++++++
+ .../com/taskflow/slice/TaskControllerTest.java     | 20 +++++++++++
+ .../java/com/taskflow/unit/TaskServiceTest.java    | 35 ++++++++++++++++++
+ 5 files changed, 120 insertions(+)
+20	0	src/test/java/com/taskflow/slice/TaskControllerTest.java
+35	0	src/test/java/com/taskflow/unit/TaskServiceTest.java
+
++    /**
++    /**
++        // Prepara dos tareas vencidas en distinto orden y verifica que el endpoint las devuelve ordenadas
++            // Construye tareas reales: algunas vencidas, otras no; una DONE vencida debe excluirse.
++            // Debe contener solo las dos vencidas (vencida1 y vencida2), ordenadas por dueDate asc (vencida1 primero)
+
+MUTANTE: quitado .sorted(TaskOrders.POR_FECHA) de vencidas()
+
+[ERROR] Tests run: 8, Failures: 1, Errors: 0, Skipped: 0
+[INFO] BUILD FAILURE
+RESTAURADO: TaskService.java quedó exactamente como estaba.
+
+
++                    .andExpect(jsonPath("$[1].id").value(7));
+
+
++     * Reglas: usa Task.estaVencida() y ordena por dueDate asc (TaskOrders.POR_FECHA).
++     * Devuelve las tareas vencidas seg├║n Task.estaVencida(), ordenadas por fecha ascendente
++     * (m├ís vencida primero) usando TaskOrders.POR_FECHA.
++                .filter(Task::estaVencida)
++                .sorted(TaskOrders.POR_FECHA)
+
+
+[INFO] Tests run: 69, Failures: 0, Errors: 0, Skipped: 0
+[INFO] BUILD SUCCESS
+
